@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us — Height Comparison Tool</title>
+  <meta name="description" content="Contact the Height Comparison Tool team for general inquiries, feature suggestions, celebrity requests, bug reports, or business partnerships. We typically respond within 2-3 business days." />
+  <meta name="theme-color" content="#121316" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #121316; color: #e5e7eb; min-height: 100vh; }
+    /* Subtle dotted texture */
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: radial-gradient(rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    /* Floating label effect */
+    .field { position: relative; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      background: #0d0e11;
+      border: 1px solid #2a2d33;
+      border-radius: 10px;
+      padding: 18px 14px 6px 14px;
+      color: #e5e7eb;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .field textarea { padding-top: 22px; resize: vertical; min-height: 130px; }
+    .field label {
+      position: absolute;
+      left: 14px; top: 14px;
+      color: #6b7280;
+      font-size: 14px;
+      pointer-events: none;
+      transition: all 0.18s ease;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.18);
+    }
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label,
+    .field textarea:focus + label,
+    .field textarea:not(:placeholder-shown) + label {
+      top: 6px;
+      font-size: 10px;
+      color: #06b6d4;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    /* Select arrow + label fix (select always has a value, so label always floats) */
+    .field select + label { top: 6px; font-size: 10px; color: #6b7280; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .field select { appearance: none; -webkit-appearance: none; padding-top: 22px; padding-bottom: 8px; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+    .field select:focus + label { color: #06b6d4; }
+    .field input.invalid, .field select.invalid, .field textarea.invalid {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+    .field .err-msg {
+      display: none;
+      color: #f87171;
+      font-size: 11px;
+      margin-top: 5px;
+      padding-left: 4px;
+    }
+    .field.has-error .err-msg { display: block; }
+
+    /* Submit button hover */
+    .submit-btn {
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      transition: all 0.22s ease;
+      box-shadow: 0 4px 14px -4px rgba(6, 182, 212, 0.4);
+    }
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px -6px rgba(6, 182, 212, 0.6);
+      background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 100%);
+    }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    /* Toast animation */
+    .toast { animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes toastIn {
+      0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast.leaving { opacity: 0; transform: translateY(10px) scale(0.95); transition: all 0.3s ease; }
+
+    /* Char counter */
+    .char-counter { font-variant-numeric: tabular-nums; transition: color 0.2s ease; }
+    .char-counter.warn { color: #f59e0b; }
+    .char-counter.ok { color: #10b981; }
+
+    /* Honeypot — hidden from real users but visible to bots */
+    .hp-field {
+      position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px;
+      opacity: 0; pointer-events: none; tabindex: -1;
+    }
+
+    /* Focus ring for trust badges */
+    .trust-badge { transition: all 0.2s ease; }
+    .trust-badge:hover { border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.05); }
+
+    /* Page entrance */
+    .fade-in-up { animation: fadeInUp 0.5s ease-out; }
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="antialiased relative">
+
+  <!-- ============ HEADER (minimal) ============ -->
+  <header class="sticky top-0 z-40 bg-[#0d0e11]/95 backdrop-blur-md border-b border-white/10 relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-lg shadow-lg shadow-cyan-500/30">📏</div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold leading-tight">Height Comparison</h1>
+          <p class="text-[10px] text-slate-500 leading-tight">Compare heights visually</p>
+        </div>
+      </a>
+      <nav class="flex items-center gap-1">
+        <a href="/" class="px-3 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition">← Back to Tool</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 relative z-10">
+
+    <!-- Hero -->
+    <div class="text-center mb-10 fade-in-up">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[11px] text-cyan-300 font-semibold mb-4">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        Avg response: 2-3 business days
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black tracking-tight">
+        Get in <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Touch</span>
+      </h1>
+      <p class="mt-3 text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
+        Questions, celebrity requests, bug reports, or partnership ideas — we read every message.
+        Send us a note below and we'll get back to you within 2-3 business days.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 fade-in-up">
+
+      <!-- ===== FORM ===== -->
+      <div class="lg:col-span-3">
+        <form id="contactForm" novalidate class="bg-[#0d0e11] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-5 shadow-xl shadow-black/40">
+
+          <!-- Honeypot anti-spam (hidden from humans, visible to bots) -->
+          <div class="hp-field" aria-hidden="true">
+            <label>Leave this field empty</label>
+            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <!-- Full Name + Email (2-col) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="field" id="field-name">
+              <input type="text" name="name" id="name" placeholder=" " required minlength="2" maxlength="60" autocomplete="name" />
+              <label for="name">Full Name *</label>
+              <div class="err-msg">Please enter your name (at least 2 characters).</div>
+            </div>
+            <div class="field" id="field-email">
+              <input type="email" name="email" id="email" placeholder=" " required autocomplete="email" />
+              <label for="email">Email Address *</label>
+              <div class="err-msg">Please enter a valid email address.</div>
+            </div>
+          </div>
+
+          <!-- Subject Dropdown (5 exact options) -->
+          <div class="field" id="field-subject">
+            <select name="subject" id="subject" required>
+              <option value="" disabled selected hidden></option>
+              <option value="General Inquiry">General Inquiry</option>
+              <option value="Suggest a Feature / Tool Improvement">Suggest a Feature / Tool Improvement</option>
+              <option value="Request a New Celebrity / Object Height">Request a New Celebrity / Object Height</option>
+              <option value="Report a Bug / Calculation Error">Report a Bug / Calculation Error</option>
+              <option value="Business & Partnership">Business &amp; Partnership</option>
+            </select>
+            <label for="subject">Reason / Subject *</label>
+            <div class="err-msg">Please select a reason for contacting us.</div>
+          </div>
+
+          <!-- Message textarea (min 20 chars) -->
+          <div class="field" id="field-message">
+            <textarea name="message" id="message" placeholder=" " required minlength="20" maxlength="2000"></textarea>
+            <label for="message">Detailed Message *</label>
+            <div class="flex items-center justify-between mt-1">
+              <div class="err-msg">Message must be at least 20 characters.</div>
+              <div class="text-[11px] text-slate-500 ml-auto">
+                <span id="charCount" class="char-counter">0</span> / 2000
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit button -->
+          <button type="submit" id="submitBtn" class="submit-btn w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span id="submitText">Send Message</span>
+          </button>
+
+          <!-- Trust badge under form -->
+          <div class="trust-badge flex items-start gap-2 p-3 rounded-lg bg-[#121316] border border-white/5 mt-2">
+            <span class="text-cyan-400 text-base flex-shrink-0 mt-0.5">🔒</span>
+            <p class="text-[12px] text-slate-400 leading-relaxed">
+              <span class="font-semibold text-slate-200">We value your privacy.</span>
+              Your email will only be used to respond to your inquiry. We never sell, share, or add you to a mailing list without consent.
+            </p>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ===== SIDEBAR: Contact channels + trust ===== -->
+      <aside class="lg:col-span-2 space-y-4">
+
+        <!-- Direct email card -->
+        <div class="bg-[#0d0e11] border border-white/10 rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Direct Email</div>
+              <div class="text-sm font-bold text-slate-100">Prefer email?</div>
+            </div>
+          </div>
+          <a href="mailto:spacexrayan@gmail.com" class="text-sm text-cyan-400 hover:text-cyan-300 hover:underline break-all font-mono">spacexrayan@gmail.com</a>
+          <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+            Click to open in your mail app, or use the form — both reach the same inbox.
+          </p>
+        </div>
+
+        <!-- Response time -->
+        <div class="bg-[#0d0e11] border border-white/10 rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Response Time</div>
+              <div class="text-sm font-bold text-slate-100">2-3 business days</div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Bug reports and calculation errors get priority handling. Mark urgent issues with "URGENT" in the subject.
+          </p>
+        </div>
+
+        <!-- What users ask about -->
+        <div class="bg-[#0d0e11] border border-white/10 rounded-2xl p-5">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Common Topics</div>
+          <ul class="space-y-2.5 text-[13px]">
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 mt-0.5">▸</span>
+              <span class="text-slate-300"><span class="font-semibold">Celebrity requests</span> — include a Wikipedia link for fastest verification.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 mt-0.5">▸</span>
+              <span class="text-slate-300"><span class="font-semibold">Bug reports</span> — describe your device, browser, and the steps to reproduce.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 mt-0.5">▸</span>
+              <span class="text-slate-300"><span class="font-semibold">Feature ideas</span> — we've added dual cm/ft-in conversion, Wikipedia search, and the Tanner formula based on user requests.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 mt-0.5">▸</span>
+              <span class="text-slate-300"><span class="font-semibold">Partnerships</span> — embed our tool, API access, or co-marketing, all welcome.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Trust badges -->
+        <div class="bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/30 rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-cyan-400">🛡️</span>
+            <div class="text-xs font-bold uppercase tracking-wider text-cyan-300">Privacy First</div>
+          </div>
+          <ul class="space-y-1.5 text-[12px] text-slate-300">
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> No tracking cookies</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> No mailing list signup</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Email used only for replies</li>
+            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Form submissions via Formspree (encrypted in transit)</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="border-t border-white/10 mt-10 relative z-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+      <p>&copy; 2026 Height Comparison Tool. All rights reserved.</p>
+      <p>Built with HTML, Tailwind CSS &amp; vanilla JavaScript.</p>
+    </div>
+  </footer>
+
+  <!-- Toast container -->
+  <div id="toastWrap" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] space-y-2 flex flex-col items-center pointer-events-none"></div>
+
+  <script>
+  /* =====================================================================
+     CONTACT FORM — Formspree AJAX + HTML5 validation + real-time toast
+     ===================================================================== */
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/spacexrayan@gmail.com';
+  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const form = document.getElementById('contactForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+  const messageEl = document.getElementById('message');
+  const charCount = document.getElementById('charCount');
+
+  // ---- Char counter for message (min 20, max 2000) ----
+  messageEl.addEventListener('input', () => {
+    const len = messageEl.value.length;
+    charCount.textContent = len;
+    charCount.classList.remove('warn', 'ok');
+    if (len >= 20 && len <= 2000) charCount.classList.add('ok');
+    else if (len > 1800) charCount.classList.add('warn');
+  });
+
+  // ---- Live field validation on blur ----
+  function validateField(field) {
+    const wrap = field.closest('.field');
+    const input = field;
+    let valid = true;
+
+    if (input.id === 'name') {
+      valid = input.value.trim().length >= 2;
+    } else if (input.id === 'email') {
+      valid = EMAIL_REGEX.test(input.value.trim());
+    } else if (input.id === 'subject') {
+      valid = !!input.value;
+    } else if (input.id === 'message') {
+      valid = input.value.trim().length >= 20;
+    }
+
+    if (valid) {
+      wrap.classList.remove('has-error');
+      input.classList.remove('invalid');
+    } else {
+      wrap.classList.add('has-error');
+      input.classList.add('invalid');
+    }
+    return valid;
+  }
+
+  // Run validation on blur for each field
+  ['name', 'email', 'subject', 'message'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('blur', () => validateField(el));
+    // Clear error state when user starts correcting
+    el.addEventListener('input', () => {
+      const wrap = el.closest('.field');
+      if (wrap.classList.contains('has-error')) {
+        wrap.classList.remove('has-error');
+        el.classList.remove('invalid');
+      }
+    });
+  });
+
+  // ---- Toast helper (real-time, no page reload) ----
+  function showToast(msg, type = 'info') {
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    const color = type === 'error'   ? 'bg-red-500/15 text-red-200 border-red-500/40'
+                : type === 'success' ? 'bg-emerald-500/15 text-emerald-200 border-emerald-500/40'
+                : 'bg-cyan-500/15 text-cyan-200 border-cyan-500/40';
+    el.className = `toast pointer-events-auto px-5 py-3 rounded-xl text-sm font-semibold border shadow-2xl backdrop-blur-md max-w-sm ${color}`;
+    el.innerHTML = msg;
+    wrap.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('leaving');
+      setTimeout(() => el.remove(), 300);
+    }, 4500);
+  }
+
+  // ---- Submit handler ----
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Honeypot check — if filled, silently abort (bot trap)
+    const hp = form.querySelector('input[name="_gotcha"]');
+    if (hp && hp.value.trim() !== '') {
+      showToast('✓ Message sent successfully!', 'success');
+      form.reset();
+      charCount.textContent = '0';
+      charCount.classList.remove('warn', 'ok');
+      return; // fake success to bots
+    }
+
+    // Validate all fields
+    const fields = ['name', 'email', 'subject', 'message'];
+    let allValid = true;
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!validateField(el)) allValid = false;
+    });
+
+    if (!allValid) {
+      showToast('⚠️ Please fix the highlighted fields and try again.', 'error');
+      // Scroll to first error
+      const firstError = form.querySelector('.has-error');
+      if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Submit via AJAX (no page reload)
+    submitBtn.disabled = true;
+    submitText.textContent = 'Sending...';
+    submitBtn.insertAdjacentHTML('beforeend', '<svg class="w-4 h-4 ml-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="3" stroke-dasharray="40 60" stroke-linecap="round"></circle></svg>');
+
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (res.ok) {
+        showToast('✓ <strong>Message sent!</strong><br><span class="font-normal text-xs">We\'ll reply within 2-3 business days.</span>', 'success');
+        form.reset();
+        charCount.textContent = '0';
+        charCount.classList.remove('warn', 'ok');
+      } else {
+        // Formspree form ID not yet set up — fall back to mailto: so the user's message still gets delivered
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const subject = formData.get('subject');
+        const message = formData.get('message');
+        const mailtoLink = `mailto:spacexrayan@gmail.com?subject=${encodeURIComponent('[Height Comparison] ' + subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`)}`;
+        showToast(`✓ <strong>Opening your email app...</strong><br><span class="font-normal text-xs">Or email us directly at spacexrayan@gmail.com</span>`, 'success');
+        window.location.href = mailtoLink;
+        form.reset();
+        charCount.textContent = '0';
+        charCount.classList.remove('warn', 'ok');
+      }
+    } catch (err) {
+      // Network/CORS error — fall back to mailto:
+      const formData = new FormData(form);
+      const name = formData.get('name') || '';
+      const email = formData.get('email') || '';
+      const subject = formData.get('subject') || '';
+      const message = formData.get('message') || '';
+      const mailtoLink = `mailto:spacexrayan@gmail.com?subject=${encodeURIComponent('[Height Comparison] ' + subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`)}`;
+      showToast('✓ <strong>Opening your email app...</strong><br><span class="font-normal text-xs">If it didn\'t open, email spacexrayan@gmail.com</span>', 'success');
+      window.location.href = mailtoLink;
+      form.reset();
+      charCount.textContent = '0';
+      charCount.classList.remove('warn', 'ok');
+    } finally {
+      submitBtn.disabled = false;
+      submitText.textContent = 'Send Message';
+      const spinner = submitBtn.querySelector('.animate-spin');
+      if (spinner) spinner.remove();
+    }
+  });
+  </script>
+</body>
+</html>
