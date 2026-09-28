@@ -1,0 +1,32 @@
+# Height Comparison Tool
+
+> Free online visual height comparison tool, child height potential calculator, and interactive growth exercises.
+
+## Core Features
+- Dynamic visual scaling ruler (0 - 40m+) with dual Metric (cm) and Imperial (ft/in) support.
+- Real-time Wikipedia API celebrity search with debounced fetching.
+- Child Mid-Parental Potential Height Calculator (Tanner formula).
+- 10 Interactive 2D animated growth exercises.
+
+## Pages
+- Home (Visual Comparison Tool): /#home
+- Child Potential Height Calculator: /#calculator
+- 2D Animated Growth Exercises: /#exercises
+- Celebrity Heights Library: /#celebrities
+
+## Pricing & Policies
+- Price: Free ($0 USD). No subscriptions, plans, or signups required.
+- Refund & Cancellation Policy: Not applicable. The tool is 100% free with no hidden charges, paid plans, or billing.
+- Data Privacy: 100% client-side execution. All data is processed in browser memory and never saved on external servers.
+
+## Target Audience
+- General public comparing heights of people, celebrities, or objects.
+- Parents estimating a child's adult height using the mid-parental formula.
+- Fitness enthusiasts performing daily growth and posture exercises.
+- Students and researchers needing a quick height unit converter (cm to ft/in).
+
+## Technical
+- Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, and vanilla JS animations.
+- 13 structured JSON-LD schemas for Google rich results: WebApplication, FAQPage, BreadcrumbList, MedicalWebPage, 10x HowTo.
+- Mobile-responsive, dark theme matching heightcomparison.com aesthetic.
+- No backend, no tracking, no cookies.
